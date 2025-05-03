@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Koti-IoT 2025</title>
+    <script
+      src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"
+      integrity="sha512-ZwR1/gSZM3ai6vCdI+LVF1zSq/5HznD3ZSTk7kajkaj4D292NLuduDCO1c/NT8Id+jE58KYLKT7hXnbtryGmMg=="
+      crossorigin="anonymous"
+      referrerpolicy="no-referrer"
+    ></script>
+    <script src="https://cdn.jsdelivr.net/npm/luxon@^2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-luxon@^1"></script>
+  </head>
+  <style>
+    html {
+      background: linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.4)),
+        url("https://images.unsplash.com/photo-1582284540020-8acbe03f4924");
+      background-size: cover;
+      background-repeat: no-repeat;
+      background-attachment: fixed;
+      padding-top: 1rem;
+    }
+    body {
+      max-width: 50vw;
+      margin: auto;
+      font-family: Arial, Helvetica, sans-serif;
+      background-color: white;
+      padding: 1.5rem;
+      border-radius: 6px;
+    }
+  </style>
+  <body>
+    <h2 id="title" style="margin-top: 0.25rem">Parveketomaatti</h2>
+    <p>Koti-IoT 2025, taas mennään</p>
+    <div>
+      <button>Tunti</button>
+      <button>Päivä</button>
+      <button>3 päivää</button>
+      <button>Viikko</button>
+      <button>Kuukausi</button>
+      <button>Kaikki</button>
+    </div>
+    <h3>Kaikki data</h3>
+    <div>
+      <canvas id="allChart"></canvas>
+    </div>
+    <h3>Mullan kosteus</h3>
+    <div>
+      <canvas id="soilChart"></canvas>
+    </div>
+    <h3>Ilma ja valo</h3>
+    <div>
+      <canvas id="airChart"></canvas>
+    </div>
+    <script>
+      const allChart = new Chart(document.getElementById("allChart"), {
+        type: "line",
+        data: {
+          datasets: [
+            {
+              label: "Ilman lämpötila °C",
+              backgroundColor: "#FF6384",
+              borderColor: "#FF6384",
+              data: Array(144)
+                .fill()
+                .map((_, i) => [
+                  Date.now() - i * 10 * 60 * 1000,
+                  Math.random() * 35,
+                ]),
+            },
+            {
+              label: "Ilman kosteus rH%",
+              backgroundColor: "#36A2EB",
+              borderColor: "#36A2EB",
+              data: Array(144)
+                .fill()
+                .map((_, i) => [
+                  Date.now() - i * 10 * 60 * 1000,
+                  Math.random() * 90 + 10,
+                ]),
+            },
+            {
+              label: "Kirkkaus lx",
+              backgroundColor: "#FFCD56",
+              borderColor: "#FFCD56",
+              data: Array(144)
+                .fill()
+                .map((_, i) => [
+                  Date.now() - i * 10 * 60 * 1000,
+                  Math.random() * 120000,
+                ]),
+              yAxisID: "y1",
+            },
+            {
+              label: "Mullan kosteus resistiivinen rH%",
+              backgroundColor: "#4BC0C0",
+              borderColor: "#4BC0C0",
+              data: Array(144)
+                .fill()
+                .map((_, i) => [
+                  Date.now() - i * 10 * 60 * 1000,
+                  Math.random() * 100,
+                ]),
+            },
+            {
+              label: "Mullan kosteus kapasitiivinen pcb rH%",
+              backgroundColor: "#9966FF",
+              borderColor: "#9966FF",
+              data: Array(144)
+                .fill()
+                .map((_, i) => [
+                  Date.now() - i * 10 * 60 * 1000,
+                  Math.random() * 100,
+                ]),
+            },
+            {
+              label: "Mullan kosteus resistiivinen metalli rH%",
+              backgroundColor: "#FF9F40",
+              borderColor: "#FF9F40",
+              data: Array(144)
+                .fill()
+                .map((_, i) => [
+                  Date.now() - i * 10 * 60 * 1000,
+                  Math.random() * 100,
+                ]),
+            },
+          ],
+        },
+        options: {
+          scales: {
+            x: {
+              type: "timeseries",
+            },
+          },
+          y1: {
+            position: "right",
+          },
+        },
+      });
+
+      const soilChart = new Chart(document.getElementById("soilChart"), {
+        type: "line",
+        data: {
+          datasets: [
+            {
+              label: "Mullan kosteus resistiivinen rH%",
+              backgroundColor: "#4BC0C0",
+              borderColor: "#4BC0C0",
+              data: Array(144)
+                .fill()
+                .map((_, i) => [
+                  Date.now() - i * 10 * 60 * 1000,
+                  Math.random() * 100,
+                ]),
+            },
+            {
+              label: "Mullan kosteus kapasitiivinen pcb rH%",
+              backgroundColor: "#9966FF",
+              borderColor: "#9966FF",
+              data: Array(144)
+                .fill()
+                .map((_, i) => [
+                  Date.now() - i * 10 * 60 * 1000,
+                  Math.random() * 100,
+                ]),
+            },
+            {
+              label: "Mullan kosteus resistiivinen metalli rH%",
+              backgroundColor: "#FF9F40",
+              borderColor: "#FF9F40",
+              data: Array(144)
+                .fill()
+                .map((_, i) => [
+                  Date.now() - i * 10 * 60 * 1000,
+                  Math.random() * 100,
+                ]),
+            },
+          ],
+        },
+        options: {
+          scales: {
+            x: {
+              type: "timeseries",
+            },
+          },
+        },
+      });
+
+      const airChart = new Chart(document.getElementById("airChart"), {
+        type: "line",
+        data: {
+          datasets: [
+            {
+              label: "Ilman lämpötila °C",
+              backgroundColor: "#FF6384",
+              borderColor: "#FF6384",
+              data: Array(144)
+                .fill()
+                .map((_, i) => [
+                  Date.now() - i * 10 * 60 * 1000,
+                  Math.random() * 35,
+                ]),
+              yAxisID: "y",
+            },
+            {
+              label: "Ilman kosteus rH%",
+              backgroundColor: "#36A2EB",
+              borderColor: "#36A2EB",
+              data: Array(144)
+                .fill()
+                .map((_, i) => [
+                  Date.now() - i * 10 * 60 * 1000,
+                  Math.random() * 90 + 10,
+                ]),
+              yAxisID: "y",
+            },
+            {
+              label: "Kirkkaus lx",
+              backgroundColor: "#FFCD56",
+              borderColor: "#FFCD56",
+              data: Array(144)
+                .fill()
+                .map((_, i) => [
+                  Date.now() - i * 10 * 60 * 1000,
+                  Math.random() * 120000,
+                ]),
+              yAxisID: "y1",
+            },
+          ],
+        },
+        options: {
+          scales: {
+            x: {
+              type: "timeseries",
+            },
+            y1: {
+              position: "right",
+            },
+          },
+        },
+      });
+
+      document.getElementById(
+        "title"
+      ).innerHTML += `, päivitetty ${new Date().toLocaleString()}`;
+    </script>
+  </body>
+</html>
