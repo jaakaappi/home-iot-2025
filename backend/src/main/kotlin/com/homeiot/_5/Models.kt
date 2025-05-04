@@ -9,7 +9,7 @@ data class Data(
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     val id: Int = 0,
-    val timestamp: Timestamp,
+    val timestamp: Long,
     val airHumidity: Float,
     val airTemperature: Float,
     val brightness: Float,
