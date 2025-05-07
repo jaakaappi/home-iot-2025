@@ -10,6 +10,14 @@ import org.springframework.web.server.ResponseStatusException
 import org.springframework.web.servlet.ModelAndView
 import java.time.Instant
 
+enum class TimeRange(val timeRangeButtonKey: String) {
+    hour("hourDisabled"), day("dayDisabled"),
+    threeDays("threeDaysDisabled"), week("weekDisabled"),
+    month("monthDisabled"), all(
+        "allDisabled"
+    )
+}
+
 
 @RestController
 class DataController {
@@ -64,15 +72,24 @@ class DataController {
         )
 
         // TODO calculate and return irrigation command
+        //return "I"
         return ""
+    }
+
+
+    @PostMapping("/irrigation")
+    fun saveIrrigation() {
+        irrigationRepository.save(
+            Irrigation(
+                timestamp = Instant.now().toEpochMilli()
+            )
+        )
     }
 
     @GetMapping("/")
     fun getPage(): ModelAndView {
         val data: List<Any> = dataRepository.findAll().toList()
 
-        print(data)
-
-        return ModelAndView("index", mapOf("data" to data))
+        return ModelAndView("index", mapOf("data" to data, "threeDaysDisabled" to true))
     }
 }

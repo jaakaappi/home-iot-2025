@@ -1,7 +1,6 @@
 package com.homeiot._5
 
 import jakarta.persistence.*
-import java.sql.Timestamp
 
 @Entity
 @Table(name = "data")
@@ -20,9 +19,9 @@ data class Data(
 
 @Entity
 @Table(name = "irrigations")
-data class Irrigations(
+data class Irrigation(
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
-    val id: Int,
-    val timestamp: Timestamp,
+    val id: Int = 0,
+    val timestamp: Long,
 )

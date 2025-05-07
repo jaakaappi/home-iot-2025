@@ -8,7 +8,7 @@
 
 Adafruit_VEML7700 veml = Adafruit_VEML7700();
 
-#define DHTTYPE DHT11
+#define DHTTYPE DHT22
 #define DHTPIN GPIO_NUM_27
 
 DHT_Unified dht(DHTPIN, DHTTYPE);
@@ -22,6 +22,19 @@ DHT_Unified dht(DHTPIN, DHTTYPE);
 #define SOIL_MOISTURE_1_LOW 0.0
 #define SOIL_MOISTURE_2_LOW 1295.0
 #define SOIL_MOISTURE_3_LOW 1363.0
+
+#define IRRIGATION_DURATION_MS 100
+#define PUMP_PIN GPIO_NUM_26
+#define BUTTON_IN GPIO_NUM_32
+
+void irrigate()
+{
+  Serial.println("Starting irrigation");
+  digitalWrite(PUMP_PIN, HIGH);
+  delay(IRRIGATION_DURATION_MS);
+  digitalWrite(PUMP_PIN, LOW);
+  Serial.println("Stopped irrigation");
+}
 
 void sendMeasurement()
 {
@@ -66,19 +79,51 @@ void sendMeasurement()
     WiFiClient client;
     HTTPClient http;
 
-    http.begin(client, host);
+    http.begin(client, host + "/data");
 
     http.addHeader("Authorization", authHeader);
     String data = String(relativeHumidity) + " " + String(temperature) + " " + String(lux) + " " +
                   String(soilMoisture1) + " " + String(soilMoisture2) + " " + String(soilMoisture3);
     Serial.println(data);
     int httpResponseCode = http.POST(data);
+    String httpResponse = http.getString();
 
     Serial.print("HTTP Response code: ");
     Serial.println(httpResponseCode);
 
     Serial.print("HTTP Response: ");
-    Serial.println(http.getString());
+    Serial.println(httpResponse);
+
+    http.end();
+    client.stop();
+
+    if (httpResponse == "I")
+    {
+      irrigate();
+    }
+  }
+}
+
+void checkManualIrrigation()
+{
+  if (digitalRead(BUTTON_IN) == HIGH)
+  {
+    irrigate();
+
+    WiFiClient client;
+    HTTPClient http;
+
+    http.begin(client, host + "/irrigation");
+
+    http.addHeader("Authorization", authHeader);
+    int httpResponseCode = http.POST("");
+    String httpResponse = http.getString();
+
+    Serial.print("HTTP Response code: ");
+    Serial.println(httpResponseCode);
+
+    Serial.print("HTTP Response: ");
+    Serial.println(httpResponse);
 
     http.end();
     client.stop();
@@ -90,6 +135,10 @@ void setup()
   Serial.begin(115200);
 
   delay(1000);
+
+  pinMode(PUMP_PIN, OUTPUT);
+  digitalWrite(PUMP_PIN, LOW);
+  pinMode(BUTTON_IN, INPUT_PULLDOWN);
 
   WiFi.begin(ssid, password);
   while (WiFi.status() != WL_CONNECTED)
@@ -155,6 +204,7 @@ void setup()
   Serial.println("Soil moisture 3 ");
   Serial.println(analogRead(SOIL_MOISTURE_3_PIN));
 
+  delay(1000);
   sendMeasurement();
 }
 
@@ -167,5 +217,6 @@ void loop()
     sendMeasurement();
     startMillis = millis();
   }
-  delay(10 * 1000);
+  checkManualIrrigation();
+  delay(1000);
 }

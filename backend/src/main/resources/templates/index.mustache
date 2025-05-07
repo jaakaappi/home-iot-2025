@@ -34,12 +34,12 @@
     <h2 id="title" style="margin-top: 0.25rem">Parveketomaatti</h2>
     <p>Koti-IoT 2025, taas mennään</p>
     <div>
-      <button>Tunti</button>
-      <button>Päivä</button>
-      <button>3 päivää</button>
-      <button>Viikko</button>
-      <button>Kuukausi</button>
-      <button>Kaikki</button>
+      <button {{#hourDisabled}}disabled{{/hourDisabled}}>Tunti</button>
+      <button {{#dayDisabled}}disabled{{/dayDisabled}}>Päivä</button>
+      <button {{#threeDaysDisabled}}disabled{{/threeDaysDisabled}}>3 päivää</button>
+      <button {{#weekDisabled}}disabled{{/weekDisabled}}>Viikko</button>
+      <button {{#monthDisabled}}disabled{{/monthDisabled}}>Kuukausi</button>
+      <button {{#allDisabled}}disabled{{/allDisabled}}>Kaikki</button>
     </div>
     <h3>Kaikki data</h3>
     <div>
