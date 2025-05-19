@@ -1,18 +1,18 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
+<head>
+    <meta charset="UTF-8"/>
     <title>Koti-IoT 2025</title>
     <script
-      src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"
-      integrity="sha512-ZwR1/gSZM3ai6vCdI+LVF1zSq/5HznD3ZSTk7kajkaj4D292NLuduDCO1c/NT8Id+jE58KYLKT7hXnbtryGmMg=="
-      crossorigin="anonymous"
-      referrerpolicy="no-referrer"
+            src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"
+            integrity="sha512-ZwR1/gSZM3ai6vCdI+LVF1zSq/5HznD3ZSTk7kajkaj4D292NLuduDCO1c/NT8Id+jE58KYLKT7hXnbtryGmMg=="
+            crossorigin="anonymous"
+            referrerpolicy="no-referrer"
     ></script>
     <script src="https://cdn.jsdelivr.net/npm/luxon@^2"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-luxon@^1"></script>
-  </head>
-  <style>
+</head>
+<style>
     html {
       background: linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.4)),
         url("https://images.unsplash.com/photo-1582284540020-8acbe03f4924");
@@ -29,255 +29,264 @@
       padding: 1.5rem;
       border-radius: 6px;
     }
-  </style>
-  <body>
-    <h2 id="title" style="margin-top: 0.25rem">Parveketomaatti</h2>
-    <p>Koti-IoT 2025, taas mennään</p>
-    <div>
-      <button {{#hourDisabled}}disabled{{/hourDisabled}}>Tunti</button>
-      <button {{#dayDisabled}}disabled{{/dayDisabled}}>Päivä</button>
-      <button {{#threeDaysDisabled}}disabled{{/threeDaysDisabled}}>3 päivää</button>
-      <button {{#weekDisabled}}disabled{{/weekDisabled}}>Viikko</button>
-      <button {{#monthDisabled}}disabled{{/monthDisabled}}>Kuukausi</button>
-      <button {{#allDisabled}}disabled{{/allDisabled}}>Kaikki</button>
-    </div>
-    <h3>Kaikki data</h3>
-    <div>
-      <canvas id="allChart"></canvas>
-    </div>
-    <h3>Mullan kosteus</h3>
-    <div>
-      <canvas id="soilChart"></canvas>
-    </div>
-    <h3>Ilma ja valo</h3>
-    <div>
-      <canvas id="airChart"></canvas>
-    </div>
-    <script>
-      const allChart = new Chart(document.getElementById("allChart"), {
-        type: "line",
-        data: {
-          datasets: [
-            {
-              label: "Ilman lämpötila °C",
-              backgroundColor: "#FF6384",
-              borderColor: "#FF6384",
-              data: [
-                {{#data}}
-                {
-                  x: {{timestamp}},
+</style>
+<body>
+<h2 id="title" style="margin-top: 0.25rem">Parveketomaatti</h2>
+<p>Koti-IoT 2025, taas mennään</p>
+<div>
+    <a href="/hour">Tunti</a>
+    <a href="/day">Päivä</a>
+    <a href="/threeDays">3 päivää</a>
+    <a href="/week">Viikko</a>
+    <a href="/month">Kuukausi</a>
+    <a href="/all">Kaikki</a>
+</div>
+<h3>Viimeisimmät lukemat {{updateTimestamp}}</h3>
+<ul>
+    <li>Ilman lämpötila {{latestReading.airTemperature}}°C</li>
+    <li>Ilman suhteellinen kosteus {{latestReading.airHumidity}}%</li>
+    <li>Valon kirkkaus {{latestReading.brightness}}lx</li>
+    <li>Mullan suhteellinen kosteus
+        <ul>
+            <li>Resistiivinen anturi {{latestReading.soilHumidity1}}%</li>
+            <li>Kapasitiivinen PCB-anturi {{latestReading.soilHumidity2}}%</li>
+            <li>Kapasitiivinen metallianturi {{latestReading.soilHumidity3}}%</li>
+        </ul>
+    </li>
+</ul>
+<h3>Graafit - kaikki data</h3>
+<div>
+    <canvas id="allChart"></canvas>
+</div>
+<h3>Mullan kosteus</h3>
+<div>
+    <canvas id="soilChart"></canvas>
+</div>
+<h3>Ilma ja valo</h3>
+<div>
+    <canvas id="airChart"></canvas>
+</div>
+<script>
+    const allChart = new Chart(document.getElementById("allChart"), {
+      type: "line",
+      data: {
+        datasets: [
+          {
+            label: "Ilman lämpötila °C",
+            backgroundColor: "#FF6384",
+            borderColor: "#FF6384",
+            data: [
+    {{#data}}
+        {
+          x: {{timestamp}},
                   y: {{airTemperature}}
-                },
-                {{/data}}
-              ],
-               yAxisID: "y",
-            },
-             {
-               label: "Ilman kosteus rH%",
-               backgroundColor: "#36A2EB",
-               borderColor: "#36A2EB",
-              data: [
-                {{#data}}
-                {
-                  x: {{timestamp}},
+        },
+    {{/data}}
+    ],
+     yAxisID: "y",
+  },
+   {
+     label: "Ilman kosteus rH%",
+     backgroundColor: "#36A2EB",
+     borderColor: "#36A2EB",
+    data: [
+    {{#data}}
+        {
+          x: {{timestamp}},
                   y: {{airHumidity}}
-                },
-                {{/data}}
-              ],
-               yAxisID: "y",
-             },
-             {
-               label: "Kirkkaus lx",
-               backgroundColor: "#FFCD56",
-               borderColor: "#FFCD56",
-              data: [
-                {{#data}}
-                {
-                  x: {{timestamp}},
+        },
+    {{/data}}
+    ],
+     yAxisID: "y",
+   },
+   {
+     label: "Valon kirkkaus lx",
+     backgroundColor: "#FFCD56",
+     borderColor: "#FFCD56",
+    data: [
+    {{#data}}
+        {
+          x: {{timestamp}},
                   y: {{brightness}}
-                },
-                {{/data}}
-              ],
-               yAxisID: "y1",
-             },
-             {
-               label: "Mullan kosteus resistiivinen rSM%",
-               backgroundColor: "#4BC0C0",
-               borderColor: "#4BC0C0",
-              data: [
-                {{#data}}
-                {
-                  x: {{timestamp}},
+        },
+    {{/data}}
+    ],
+     yAxisID: "y1",
+   },
+   {
+     label: "Mullan kosteus resistiivinen rSM%",
+     backgroundColor: "#4BC0C0",
+     borderColor: "#4BC0C0",
+    data: [
+    {{#data}}
+        {
+          x: {{timestamp}},
                   y: {{soilHumidity1}}
-                },
-                {{/data}}
-              ],
-             },
-             {
-               label: "Mullan kosteus kapasitiivinen pcb rSM%",
-               backgroundColor: "#9966FF",
-               borderColor: "#9966FF",
-              data: [
-                {{#data}}
-                {
-                  x: {{timestamp}},
+        },
+    {{/data}}
+    ],
+   },
+   {
+     label: "Mullan kosteus kapasitiivinen pcb rSM%",
+     backgroundColor: "#9966FF",
+     borderColor: "#9966FF",
+    data: [
+    {{#data}}
+        {
+          x: {{timestamp}},
                   y: {{soilHumidity2}}
-                },
-                {{/data}}
-              ],
-             },
-             {
-               label: "Mullan kosteus kapasitiivinen metalli rSM%",
-               backgroundColor: "#FF9F40",
-               borderColor: "#FF9F40",
-              data: [
-                {{#data}}
-                {
-                  x: {{timestamp}},
+        },
+    {{/data}}
+    ],
+   },
+   {
+     label: "Mullan kosteus kapasitiivinen metalli rSM%",
+     backgroundColor: "#FF9F40",
+     borderColor: "#FF9F40",
+    data: [
+    {{#data}}
+        {
+          x: {{timestamp}},
                   y: {{soilHumidity3}}
-                },
-                {{/data}}
-              ],
-             },
-          ],
         },
-        options: {
-          cubicInterpolationMode: "monotone",
-          pointStyle: false,
-          scales: {
-            x: {
-              type: "timeseries",
-            },
-          },
-          y1: {
-            position: "right",
-            min: 0
-          },
-        },
-      });
+    {{/data}}
+    ],
+   },
+],
+},
+options: {
+cubicInterpolationMode: "monotone",
+pointStyle: false,
+scales: {
+  x: {
+    type: "timeseries",
+  },
+},
+y1: {
+  position: "right",
+  min: 0
+},
+},
+});
 
-      const soilChart = new Chart(document.getElementById("soilChart"), {
-        type: "line",
-        data: {
-          datasets: [
-             {
-               label: "Mullan kosteus resistiivinen rSM%",
-               backgroundColor: "#4BC0C0",
-               borderColor: "#4BC0C0",
-              data: [
-                {{#data}}
-                {
-                  x: {{timestamp}},
+const soilChart = new Chart(document.getElementById("soilChart"), {
+type: "line",
+data: {
+datasets: [
+   {
+     label: "Mullan kosteus resistiivinen rSM%",
+     backgroundColor: "#4BC0C0",
+     borderColor: "#4BC0C0",
+    data: [
+    {{#data}}
+        {
+          x: {{timestamp}},
                   y: {{soilHumidity1}}
-                },
-                {{/data}}
-              ],
-             },
-             {
-               label: "Mullan kosteus kapasitiivinen pcb rSM%",
-               backgroundColor: "#9966FF",
-               borderColor: "#9966FF",
-              data: [
-                {{#data}}
-                {
-                  x: {{timestamp}},
+        },
+    {{/data}}
+    ],
+   },
+   {
+     label: "Mullan kosteus kapasitiivinen pcb rSM%",
+     backgroundColor: "#9966FF",
+     borderColor: "#9966FF",
+    data: [
+    {{#data}}
+        {
+          x: {{timestamp}},
                   y: {{soilHumidity2}}
-                },
-                {{/data}}
-              ],
-             },
-             {
-               label: "Mullan kosteus kapasitiivinen metalli rSM%",
-               backgroundColor: "#FF9F40",
-               borderColor: "#FF9F40",
-              data: [
-                {{#data}}
-                {
-                  x: {{timestamp}},
+        },
+    {{/data}}
+    ],
+   },
+   {
+     label: "Mullan kosteus kapasitiivinen metalli rSM%",
+     backgroundColor: "#FF9F40",
+     borderColor: "#FF9F40",
+    data: [
+    {{#data}}
+        {
+          x: {{timestamp}},
                   y: {{soilHumidity3}}
-                },
-                {{/data}}
-              ],
-             },
-          ],
         },
-        options: {
-          cubicInterpolationMode: "monotone",
-          pointStyle: false,
-          scales: {
-            x: {
-              type: "timeseries",
-            },
-          },
-        },
-      });
+    {{/data}}
+    ],
+   },
+],
+},
+options: {
+cubicInterpolationMode: "monotone",
+pointStyle: false,
+scales: {
+  x: {
+    type: "timeseries",
+  },
+},
+},
+});
 
-      const airChart = new Chart(document.getElementById("airChart"), {
-        type: "line",
-        data: {
-          datasets: [
-            {
-              label: "Ilman lämpötila °C",
-              backgroundColor: "#FF6384",
-              borderColor: "#FF6384",
-              data: [
-                {{#data}}
-                {
-                  x: {{timestamp}},
+const airChart = new Chart(document.getElementById("airChart"), {
+type: "line",
+data: {
+datasets: [
+  {
+    label: "Ilman lämpötila °C",
+    backgroundColor: "#FF6384",
+    borderColor: "#FF6384",
+    data: [
+    {{#data}}
+        {
+          x: {{timestamp}},
                   y: {{airTemperature}}
-                },
-                {{/data}}
-              ],
-               yAxisID: "y",
-            },
-             {
-               label: "Ilman kosteus rH%",
-               backgroundColor: "#36A2EB",
-               borderColor: "#36A2EB",
-              data: [
-                {{#data}}
-                {
-                  x: {{timestamp}},
+        },
+    {{/data}}
+    ],
+     yAxisID: "y",
+  },
+   {
+     label: "Ilman kosteus rH%",
+     backgroundColor: "#36A2EB",
+     borderColor: "#36A2EB",
+    data: [
+    {{#data}}
+        {
+          x: {{timestamp}},
                   y: {{airHumidity}}
-                },
-                {{/data}}
-              ],
-               yAxisID: "y",
-             },
-             {
-               label: "Kirkkaus lx",
-               backgroundColor: "#FFCD56",
-               borderColor: "#FFCD56",
-              data: [
-                {{#data}}
-                {
-                  x: {{timestamp}},
+        },
+    {{/data}}
+    ],
+     yAxisID: "y",
+   },
+   {
+     label: "Valon kirkkaus lx",
+     backgroundColor: "#FFCD56",
+     borderColor: "#FFCD56",
+    data: [
+    {{#data}}
+        {
+          x: {{timestamp}},
                   y: {{brightness}}
-                },
-                {{/data}}
-              ],
-               yAxisID: "y1",
-             },
-          ],
         },
-        options: {
-          cubicInterpolationMode: "monotone",
-          pointStyle: false,
-          scales: {
-            x: {
-              type: "timeseries",
-            },
-            y1: {
-              position: "right",
-              min: 0
-            },
-          },
-        },
-      });
-
-      document.getElementById(
-        "title"
-      ).innerHTML += `, päivitetty ${new Date().toLocaleString()}`;
-    </script>
-  </body>
+    {{/data}}
+    ],
+     yAxisID: "y1",
+   },
+],
+},
+options: {
+cubicInterpolationMode: "monotone",
+pointStyle: false,
+scales: {
+  x: {
+    type: "timeseries",
+  },
+  y1: {
+    position: "right",
+    min: 0
+  },
+},
+},
+});
+</script>
+</body>
 </html>

@@ -2,20 +2,19 @@ package com.homeiot._5
 
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
-import org.springframework.web.bind.annotation.GetMapping
-import org.springframework.web.bind.annotation.PostMapping
-import org.springframework.web.bind.annotation.RequestBody
-import org.springframework.web.bind.annotation.RestController
+import org.springframework.web.bind.annotation.*
 import org.springframework.web.server.ResponseStatusException
 import org.springframework.web.servlet.ModelAndView
+import java.text.SimpleDateFormat
+import java.time.Clock
 import java.time.Instant
+import java.time.temporal.ChronoUnit
+import java.util.*
 
-enum class TimeRange(val timeRangeButtonKey: String) {
-    hour("hourDisabled"), day("dayDisabled"),
-    threeDays("threeDaysDisabled"), week("weekDisabled"),
-    month("monthDisabled"), all(
-        "allDisabled"
-    )
+enum class TimeRange {
+    hour, day,
+    threeDays, week,
+    month, all
 }
 
 
@@ -86,10 +85,40 @@ class DataController {
         )
     }
 
-    @GetMapping("/")
-    fun getPage(): ModelAndView {
-        val data: List<Any> = dataRepository.findAll().toList()
+    @GetMapping("", "/", "/{timeRange}")
+    fun getPage(@PathVariable timeRange: TimeRange?): ModelAndView {
+        val data: List<Any> = when (timeRange) {
+            null -> dataRepository.findAll().toList()
+            TimeRange.hour -> dataRepository.getAfterTimestamp(
+                Clock.systemUTC().instant().minus(60, ChronoUnit.MINUTES).toEpochMilli()
+            )
 
-        return ModelAndView("index", mapOf("data" to data, "threeDaysDisabled" to true))
+            TimeRange.day -> dataRepository.getAfterTimestamp(
+                Clock.systemUTC().instant().minus(1, ChronoUnit.DAYS).toEpochMilli()
+            )
+
+            TimeRange.threeDays -> dataRepository.getAfterTimestamp(
+                Clock.systemUTC().instant().minus(3, ChronoUnit.DAYS).toEpochMilli()
+            )
+
+            TimeRange.week -> dataRepository.getAfterTimestamp(
+                Clock.systemUTC().instant().minus(7, ChronoUnit.DAYS).toEpochMilli()
+            )
+
+            TimeRange.month -> dataRepository.getAfterTimestamp(
+                Clock.systemUTC().instant().minus(30, ChronoUnit.DAYS).toEpochMilli()
+            )
+
+            TimeRange.all -> dataRepository.findAll().toList()
+        }
+
+        val latestReading = dataRepository.findFirstByOrderByTimestampDesc()
+        val updateTimestampText =
+            if (latestReading != null) SimpleDateFormat("dd.MM.yyyy HH:mm:ss").format(Date(latestReading.timestamp)) else ""
+
+        return ModelAndView(
+            "index",
+            mapOf("data" to data, "updateTimestamp" to updateTimestampText, "latestReading" to latestReading)
+        )
     }
 }
