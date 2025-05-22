@@ -9,6 +9,15 @@ services:
       - pgdata:/var/lib/postgresql/data
     ports:
       - 5432:5432
+  api:
+    build: .
+    restart: unless-stopped
+    ports: 
+      - "8080:8080"
+    environment:
+      - JAVA_TOOL_OPTIONS="-Dspring.datasource.url=jdbc:postgresql://db:5432/homeiot"
+    depends_on:
+      - db
 
 volumes:
   pgdata:
