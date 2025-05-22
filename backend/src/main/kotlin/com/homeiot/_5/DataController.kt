@@ -1,6 +1,5 @@
 package com.homeiot._5
 
-import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
 import org.springframework.web.bind.annotation.*
 import org.springframework.web.server.ResponseStatusException
@@ -19,13 +18,11 @@ enum class TimeRange {
 
 
 @RestController
-class DataController {
-
-    @Autowired
-    lateinit var dataRepository: DataRepository
-
-    @Autowired
-    lateinit var irrigationRepository: IrrigationRepository
+class DataController(
+    private val dataRepository: DataRepository,
+    private val irrigationRepository: IrrigationRepository,
+    private val dataConverter: DataConverter
+) {
 
     @PostMapping("/data")
     fun saveData(@RequestBody data: String): String {
@@ -88,7 +85,7 @@ class DataController {
     @GetMapping("", "/", "/{timeRange}")
     fun getPage(@PathVariable timeRange: TimeRange?): ModelAndView {
         val data: List<Any> = when (timeRange) {
-            null -> dataRepository.findAll().toList()
+            null -> dataRepository.findAllByOrderByTimestampDesc().toList()
             TimeRange.hour -> dataRepository.getAfterTimestamp(
                 Clock.systemUTC().instant().minus(60, ChronoUnit.MINUTES).toEpochMilli()
             )
@@ -110,9 +107,10 @@ class DataController {
             )
 
             TimeRange.all -> dataRepository.findAll().toList()
-        }
+        }.map { if (it.timestamp > 1747849313389) dataConverter.convert(it) else it }
 
         val latestReading = dataRepository.findFirstByOrderByTimestampDesc()
+            ?.let { if (it.timestamp > 1747849313389) dataConverter.convert(it) else it }
         val updateTimestampText =
             if (latestReading != null) SimpleDateFormat("dd.MM.yyyy HH:mm:ss").format(Date(latestReading.timestamp)) else ""
 

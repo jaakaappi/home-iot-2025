@@ -11,6 +11,8 @@ interface DataRepository : CrudRepository<Data, Int> {
         nativeQuery = true
     )
     fun getAfterTimestamp(timeStamp: Long): List<Data>
+
+    fun findAllByOrderByTimestampDesc(): List<Data>
 }
 
 interface IrrigationRepository : CrudRepository<Irrigation, Int>

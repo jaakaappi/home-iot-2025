@@ -16,16 +16,12 @@ DHT_Unified dht(DHTPIN, DHTTYPE);
 #define SOIL_MOISTURE_1_PIN GPIO_NUM_36     // resistive
 #define SOIL_MOISTURE_2_PIN GPIO_NUM_39     // pcb
 #define SOIL_MOISTURE_3_PIN GPIO_NUM_34     // metal
-#define SOIL_MOISTURE_1_HIGH 3600.0
-#define SOIL_MOISTURE_2_HIGH 3270.0
-#define SOIL_MOISTURE_3_HIGH 4095.0
-#define SOIL_MOISTURE_1_LOW 0.0
-#define SOIL_MOISTURE_2_LOW 1295.0
-#define SOIL_MOISTURE_3_LOW 1363.0
 
 #define IRRIGATION_DURATION_MS 5 * 1000
 #define PUMP_PIN GPIO_NUM_32
 #define BUTTON_IN GPIO_NUM_26
+
+#define AVERAGING_COUNT 10
 
 void irrigate()
 {
@@ -34,6 +30,18 @@ void irrigate()
   delay(IRRIGATION_DURATION_MS);
   digitalWrite(PUMP_PIN, LOW);
   Serial.println("Stopped irrigation");
+}
+
+float takeAveragedMeasurement(int pin)
+{
+  float reading = 0.0;
+
+  for (int i = 0; i < AVERAGING_COUNT; i++)
+  {
+    reading += analogRead(pin);
+  }
+
+  return reading / AVERAGING_COUNT;
 }
 
 void sendMeasurement()
@@ -54,23 +62,15 @@ void sendMeasurement()
 
   digitalWrite(SOIL_MOISTURE_1_OUT_PIN, HIGH);
   delay(100);
-  float soilMoisture1 = (1.0 - (analogRead(SOIL_MOISTURE_1_PIN) - SOIL_MOISTURE_1_LOW) / (SOIL_MOISTURE_1_HIGH - SOIL_MOISTURE_1_LOW)) * 100.0;
-  Serial.println(analogRead(SOIL_MOISTURE_1_PIN));
+  float soilMoisture1 = takeAveragedMeasurement(SOIL_MOISTURE_1_PIN);
+  digitalWrite(SOIL_MOISTURE_1_OUT_PIN, LOW);
   Serial.println(soilMoisture1);
   digitalWrite(SOIL_MOISTURE_1_OUT_PIN, LOW);
-  float soilMoisture2 = (1.0 - (analogRead(SOIL_MOISTURE_2_PIN) - SOIL_MOISTURE_2_LOW) / (SOIL_MOISTURE_2_HIGH - SOIL_MOISTURE_2_LOW)) * 100.0;
-  Serial.println(analogRead(SOIL_MOISTURE_2_PIN));
-  Serial.println(soilMoisture2);
-  float soilMoisture3 = (1.0 - (analogRead(SOIL_MOISTURE_3_PIN) - SOIL_MOISTURE_3_LOW) / (SOIL_MOISTURE_3_HIGH - SOIL_MOISTURE_3_LOW)) * 100.0;
-  Serial.println(analogRead(SOIL_MOISTURE_3_PIN));
-  Serial.println(soilMoisture3);
 
-  soilMoisture1 = soilMoisture1 < 0 ? 0 : soilMoisture1 > 100 ? 100
-                                                              : soilMoisture1;
-  soilMoisture2 = soilMoisture2 < 0 ? 0 : soilMoisture2 > 100 ? 100
-                                                              : soilMoisture2;
-  soilMoisture3 = soilMoisture3 < 0 ? 0 : soilMoisture3 > 100 ? 100
-                                                              : soilMoisture3;
+  float soilMoisture2 = takeAveragedMeasurement(SOIL_MOISTURE_2_PIN);
+  Serial.println(soilMoisture2);
+  float soilMoisture3 = takeAveragedMeasurement(SOIL_MOISTURE_3_PIN);
+  Serial.println(soilMoisture3);
 
   if (isnan(temperature) || isnan(relativeHumidity) || isnan(lux))
   {

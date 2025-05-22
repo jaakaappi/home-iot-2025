@@ -12,8 +12,11 @@ data class Data(
     val airHumidity: Float,
     val airTemperature: Float,
     val brightness: Float,
+    /** Resistive */
     val soilHumidity1: Float,
+    /** Capacitive PCB */
     val soilHumidity2: Float,
+    /** Capacitive Metal */
     val soilHumidity3: Float,
 )
 
