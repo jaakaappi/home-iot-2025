@@ -34,7 +34,7 @@
 <h2 id="title" style="margin-top: 0.25rem">Parveketomaatti</h2>
 <p>Koti-IoT 2025, taas mennään</p>
 <div>
-    <a href="/hour">Tunti</a>
+    <a href="/twoHours">2 tuntia</a>
     <a href="/day">Päivä</a>
     <a href="/threeDays">3 päivää</a>
     <a href="/week">Viikko</a>
@@ -58,7 +58,7 @@
 <div>
     <canvas id="allChart"></canvas>
 </div>
-<h3>Mullan kosteus</h3>
+<h3>Mullan kosteus-%</h3>
 <div>
     <canvas id="soilChart"></canvas>
 </div>
@@ -160,6 +160,9 @@ pointStyle: false,
 scales: {
   x: {
     type: "timeseries",
+    time: {
+        isoWeekday: true
+    }
   },
 },
 y1: {
@@ -174,7 +177,7 @@ type: "line",
 data: {
 datasets: [
    {
-     label: "Mullan kosteus resistiivinen rSM%",
+     label: "Resistiivinen anturi",
      backgroundColor: "#4BC0C0",
      borderColor: "#4BC0C0",
     data: [
@@ -187,7 +190,7 @@ datasets: [
     ],
    },
    {
-     label: "Mullan kosteus kapasitiivinen pcb rSM%",
+     label: "Kapasitiivinen PCB-anturi",
      backgroundColor: "#9966FF",
      borderColor: "#9966FF",
     data: [
@@ -200,7 +203,7 @@ datasets: [
     ],
    },
    {
-     label: "Mullan kosteus kapasitiivinen metalli rSM%",
+     label: "Kapasitiivinen metallianturi",
      backgroundColor: "#FF9F40",
      borderColor: "#FF9F40",
     data: [
@@ -214,15 +217,25 @@ datasets: [
    },
 ],
 },
-options: {
-cubicInterpolationMode: "monotone",
-pointStyle: false,
-scales: {
-  x: {
-    type: "timeseries",
-  },
-},
-},
+    options: {
+        cubicInterpolationMode: "monotone",
+        pointStyle: false,
+        scales: {
+          x: {
+            type: "timeseries",
+            time: {
+                isoWeekday: true,
+            },
+            //ticks: { todo check chart unit, add day if other than previous value using https://www.chartjs.org/docs/latest/api/classes/Scale.html#getlabelforvalue
+              // Include a dollar sign in the ticks
+              //callback: function(value, index, ticks) {
+                //console.log(value, index, ticks);
+                //return '$' + value;
+              //}
+            //},
+          },
+        },
+    },
 });
 
 const airChart = new Chart(document.getElementById("airChart"), {
@@ -230,7 +243,7 @@ type: "line",
 data: {
 datasets: [
   {
-    label: "Ilman lämpötila °C",
+    label: "Lämpötila °C",
     backgroundColor: "#FF6384",
     borderColor: "#FF6384",
     data: [
@@ -244,7 +257,7 @@ datasets: [
      yAxisID: "y",
   },
    {
-     label: "Ilman kosteus rH%",
+     label: "Kosteus rH%",
      backgroundColor: "#36A2EB",
      borderColor: "#36A2EB",
     data: [
@@ -279,6 +292,9 @@ pointStyle: false,
 scales: {
   x: {
     type: "timeseries",
+    time: {
+        isoWeekday: true
+    }
   },
   y1: {
     position: "right",

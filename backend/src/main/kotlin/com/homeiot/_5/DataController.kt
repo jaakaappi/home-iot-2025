@@ -11,7 +11,7 @@ import java.time.temporal.ChronoUnit
 import java.util.*
 
 enum class TimeRange {
-    hour, day,
+    twoHours, day,
     threeDays, week,
     month, all
 }
@@ -86,8 +86,8 @@ class DataController(
     fun getPage(@PathVariable timeRange: TimeRange?): ModelAndView {
         val data: List<Any> = when (timeRange) {
             null -> dataRepository.findAllByOrderByTimestampDesc().toList()
-            TimeRange.hour -> dataRepository.getAfterTimestamp(
-                Clock.systemUTC().instant().minus(60, ChronoUnit.MINUTES).toEpochMilli()
+            TimeRange.twoHours -> dataRepository.getAfterTimestamp(
+                Clock.systemUTC().instant().minus(2, ChronoUnit.HOURS).toEpochMilli()
             )
 
             TimeRange.day -> dataRepository.getAfterTimestamp(
@@ -109,6 +109,14 @@ class DataController(
             TimeRange.all -> dataRepository.findAll().toList()
         }.map { if (it.timestamp > 1747849313389) dataConverter.convert(it) else it }
 
+        val timeUnit = when (timeRange) {
+            TimeRange.twoHours -> "minute"
+            TimeRange.day -> "minute"
+            TimeRange.threeDays, TimeRange.week, TimeRange.month -> "day"
+            TimeRange.all -> "day"
+            null -> "day"
+        }
+
         val latestReading = dataRepository.findFirstByOrderByTimestampDesc()
             ?.let { if (it.timestamp > 1747849313389) dataConverter.convert(it) else it }
         val updateTimestampText =
@@ -116,7 +124,12 @@ class DataController(
 
         return ModelAndView(
             "index",
-            mapOf("data" to data, "updateTimestamp" to updateTimestampText, "latestReading" to latestReading)
+            mapOf(
+                "data" to data,
+                "updateTimestamp" to updateTimestampText,
+                "latestReading" to latestReading,
+                "timeUnit" to timeUnit
+            )
         )
     }
 }
