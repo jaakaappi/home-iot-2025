@@ -6,7 +6,7 @@ import org.springframework.data.repository.CrudRepository
 interface DataRepository : CrudRepository<Data, Int> {
     fun findFirstByOrderByTimestampDesc(): Data?
     fun findFirstByTimestampLessThan(timeStamp: Long): Data?
-    fun findFirstByTimestampMoreThan(timeStamp: Long): Data?
+    fun findFirstByTimestampGreaterThan(timeStamp: Long): Data?
 
     @Query(
         "SELECT * FROM data WHERE timestamp >= ?1",

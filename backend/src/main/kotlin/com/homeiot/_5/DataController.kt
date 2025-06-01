@@ -80,7 +80,8 @@ class DataController(
 
                 val readingBeforeLastIrrigation =
                     dataRepository.findFirstByTimestampLessThan(latestIrrigation.timestamp)
-                val readingAfterLastIrrigation = dataRepository.findFirstByTimestampMoreThan(latestIrrigation.timestamp)
+                val readingAfterLastIrrigation =
+                    dataRepository.findFirstByTimestampGreaterThan(latestIrrigation.timestamp)
 
                 if (readingBeforeLastIrrigation == null || readingAfterLastIrrigation == null) {
                     logger.error("Missing before or after irrigation reading $readingBeforeLastIrrigation $readingAfterLastIrrigation")
