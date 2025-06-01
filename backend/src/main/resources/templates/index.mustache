@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8"/>
-    <title>Koti-IoT 2025</title>
+    <title>Koti-IoTomaatti 2025</title>
     <script
             src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"
             integrity="sha512-ZwR1/gSZM3ai6vCdI+LVF1zSq/5HznD3ZSTk7kajkaj4D292NLuduDCO1c/NT8Id+jE58KYLKT7hXnbtryGmMg=="
@@ -50,7 +50,7 @@
         <ul>
             <li>Resistiivinen anturi {{latestReading.soilHumidity1}}%</li>
             <li>Kapasitiivinen PCB-anturi {{latestReading.soilHumidity2}}%</li>
-            <li>Kapasitiivinen metallianturi {{latestReading.soilHumidity3}}%</li>
+            <li>Resistiivinen metallianturi {{latestReading.soilHumidity3}}%</li>
         </ul>
     </li>
 </ul>
@@ -140,7 +140,7 @@
     ],
    },
    {
-     label: "Mullan kosteus kapasitiivinen metalli rSM%",
+     label: "Mullan kosteus resistiivinen metalli rSM%",
      backgroundColor: "#FF9F40",
      borderColor: "#FF9F40",
     data: [
@@ -203,7 +203,7 @@ datasets: [
     ],
    },
    {
-     label: "Kapasitiivinen metallianturi",
+     label: "Resistiivinen metallianturi",
      backgroundColor: "#FF9F40",
      borderColor: "#FF9F40",
     data: [

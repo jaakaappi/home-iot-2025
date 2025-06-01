@@ -1,5 +1,6 @@
 package com.homeiot._5
 
+import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
 import org.springframework.web.bind.annotation.*
 import org.springframework.web.server.ResponseStatusException
@@ -23,6 +24,8 @@ class DataController(
     private val irrigationRepository: IrrigationRepository,
     private val dataConverter: DataConverter
 ) {
+
+    val logger: org.slf4j.Logger = LoggerFactory.getLogger(javaClass);
 
     @PostMapping("/data")
     fun saveData(@RequestBody data: String): String {
@@ -67,8 +70,35 @@ class DataController(
             )
         )
 
-        // TODO calculate and return irrigation command
-        //return "I"
+        val latestReading = dataRepository.findFirstByOrderByTimestampDesc()
+            ?.let { if (it.timestamp > 1747849313389) dataConverter.convert(it) else it }
+
+        if (latestReading != null && (latestReading.soilHumidity1 + latestReading.soilHumidity2) / 2 <= 50.0f) {
+            val latestIrrigation = irrigationRepository.findFirstByOrderByTimestampDesc()
+
+            if (Instant.now().toEpochMilli() - latestIrrigation.timestamp > 3 * 60 * 60 * 1000) {
+
+                val readingBeforeLastIrrigation =
+                    dataRepository.findFirstByTimestampLessThan(latestIrrigation.timestamp)
+                val readingAfterLastIrrigation = dataRepository.findFirstByTimestampMoreThan(latestIrrigation.timestamp)
+
+                if (readingBeforeLastIrrigation == null || readingAfterLastIrrigation == null) {
+                    logger.error("Missing before or after irrigation reading $readingBeforeLastIrrigation $readingAfterLastIrrigation")
+                    return ""
+                }
+
+                if ((readingAfterLastIrrigation.soilHumidity1 + readingAfterLastIrrigation.soilHumidity2) / 2 > (readingBeforeLastIrrigation.soilHumidity1 + readingBeforeLastIrrigation.soilHumidity2) / 2) {
+                    saveIrrigation()
+                    return "I"
+                } else
+                    logger.error(
+                        "Humidity has not increased after last irrigation at ${
+                            Instant.ofEpochMilli(latestIrrigation.timestamp)
+                        }: ${readingAfterLastIrrigation.soilHumidity1} and ${readingAfterLastIrrigation.soilHumidity2} vs. before ${readingBeforeLastIrrigation.soilHumidity1} and ${readingBeforeLastIrrigation.soilHumidity2}!"
+                    )
+            }
+        }
+
         return ""
     }
 
