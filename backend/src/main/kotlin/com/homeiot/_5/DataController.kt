@@ -83,20 +83,23 @@ class DataController(
                 val readingAfterLastIrrigation =
                     dataRepository.findFirstByTimestampGreaterThan(latestIrrigation.timestamp)
 
-                if (readingBeforeLastIrrigation == null || readingAfterLastIrrigation == null) {
-                    logger.error("Missing before or after irrigation reading $readingBeforeLastIrrigation $readingAfterLastIrrigation")
+                if (readingAfterLastIrrigation == null) {
+                    logger.error("Missing reading after irrigation")
                     return ""
                 }
 
-                if ((readingAfterLastIrrigation.soilHumidity1 + readingAfterLastIrrigation.soilHumidity2) / 2 > (readingBeforeLastIrrigation.soilHumidity1 + readingBeforeLastIrrigation.soilHumidity2) / 2) {
+                if (readingBeforeLastIrrigation != null) {
+                    if ((readingAfterLastIrrigation.soilHumidity1 + readingAfterLastIrrigation.soilHumidity2) / 2 <= (readingBeforeLastIrrigation.soilHumidity1 + readingBeforeLastIrrigation.soilHumidity2) / 2) {
+                        logger.error(
+                            "Humidity has not increased after last irrigation at ${
+                                Instant.ofEpochMilli(latestIrrigation.timestamp)
+                            }: ${readingAfterLastIrrigation.soilHumidity1} and ${readingAfterLastIrrigation.soilHumidity2} vs. before ${readingBeforeLastIrrigation.soilHumidity1} and ${readingBeforeLastIrrigation.soilHumidity2}!"
+                        )
+                    }
+                } else {
                     saveIrrigation()
                     return "I"
-                } else
-                    logger.error(
-                        "Humidity has not increased after last irrigation at ${
-                            Instant.ofEpochMilli(latestIrrigation.timestamp)
-                        }: ${readingAfterLastIrrigation.soilHumidity1} and ${readingAfterLastIrrigation.soilHumidity2} vs. before ${readingBeforeLastIrrigation.soilHumidity1} and ${readingBeforeLastIrrigation.soilHumidity2}!"
-                    )
+                }
             }
         }
 
