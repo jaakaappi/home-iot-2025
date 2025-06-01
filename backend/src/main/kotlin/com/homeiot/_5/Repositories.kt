@@ -18,5 +18,5 @@ interface DataRepository : CrudRepository<Data, Int> {
 }
 
 interface IrrigationRepository : CrudRepository<Irrigation, Int> {
-    fun findFirstByOrderByTimestampDesc(): Irrigation
+    fun findFirstByOrderByTimestampDesc(): Irrigation?
 }

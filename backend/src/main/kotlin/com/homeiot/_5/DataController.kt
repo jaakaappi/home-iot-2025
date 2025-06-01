@@ -76,31 +76,38 @@ class DataController(
         if (latestReading != null && (latestReading.soilHumidity1 + latestReading.soilHumidity2) / 2 <= 50.0f) {
             val latestIrrigation = irrigationRepository.findFirstByOrderByTimestampDesc()
 
-            if (Instant.now().toEpochMilli() - latestIrrigation.timestamp > 3 * 60 * 60 * 1000) {
+            if (latestIrrigation != null)
+                if (Instant.now()
+                        .toEpochMilli() - latestIrrigation.timestamp > 3 * 60 * 60 * 1000
+                ) {
 
-                val readingBeforeLastIrrigation =
-                    dataRepository.findFirstByTimestampLessThan(latestIrrigation.timestamp)
-                val readingAfterLastIrrigation =
-                    dataRepository.findFirstByTimestampGreaterThan(latestIrrigation.timestamp)
 
-                if (readingAfterLastIrrigation == null) {
-                    logger.error("Missing reading after irrigation")
-                    return ""
-                }
+                    val readingBeforeLastIrrigation =
+                        dataRepository.findFirstByTimestampLessThan(latestIrrigation.timestamp)
+                    val readingAfterLastIrrigation =
+                        dataRepository.findFirstByTimestampGreaterThan(latestIrrigation.timestamp)
 
-                if (readingBeforeLastIrrigation != null) {
-                    if ((readingAfterLastIrrigation.soilHumidity1 + readingAfterLastIrrigation.soilHumidity2) / 2 <= (readingBeforeLastIrrigation.soilHumidity1 + readingBeforeLastIrrigation.soilHumidity2) / 2) {
-                        logger.error(
-                            "Humidity has not increased after last irrigation at ${
-                                Instant.ofEpochMilli(latestIrrigation.timestamp)
-                            }: ${readingAfterLastIrrigation.soilHumidity1} and ${readingAfterLastIrrigation.soilHumidity2} vs. before ${readingBeforeLastIrrigation.soilHumidity1} and ${readingBeforeLastIrrigation.soilHumidity2}!"
-                        )
+                    if (readingAfterLastIrrigation == null) {
+                        logger.error("Missing reading after irrigation")
+                        return ""
+                    }
+
+                    if (readingBeforeLastIrrigation != null) {
+                        if ((readingAfterLastIrrigation.soilHumidity1 + readingAfterLastIrrigation.soilHumidity2) / 2 <= (readingBeforeLastIrrigation.soilHumidity1 + readingBeforeLastIrrigation.soilHumidity2) / 2) {
+                            logger.error(
+                                "Humidity has not increased after last irrigation at ${
+                                    Instant.ofEpochMilli(latestIrrigation.timestamp)
+                                }: ${readingAfterLastIrrigation.soilHumidity1} and ${readingAfterLastIrrigation.soilHumidity2} vs. before ${readingBeforeLastIrrigation.soilHumidity1} and ${readingBeforeLastIrrigation.soilHumidity2}!"
+                            )
+                        }
+                    } else {
+                        saveIrrigation()
+                        return "I"
                     }
                 } else {
                     saveIrrigation()
                     return "I"
                 }
-            }
         }
 
         return ""
