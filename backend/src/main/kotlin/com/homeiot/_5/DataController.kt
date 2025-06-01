@@ -74,9 +74,10 @@ class DataController(
             ?.let { if (it.timestamp > 1747849313389) dataConverter.convert(it) else it }
 
         if (latestReading != null && (latestReading.soilHumidity1 + latestReading.soilHumidity2) / 2 <= 50.0f) {
+            logger.info("Checking irrigation")
             val latestIrrigation = irrigationRepository.findFirstByOrderByTimestampDesc()
 
-            if (latestIrrigation != null)
+            if (latestIrrigation != null) {
                 if (Instant.now()
                         .toEpochMilli() - latestIrrigation.timestamp > 3 * 60 * 60 * 1000
                 ) {
@@ -88,7 +89,7 @@ class DataController(
                         dataRepository.findFirstByTimestampGreaterThan(latestIrrigation.timestamp)
 
                     if (readingAfterLastIrrigation == null) {
-                        logger.error("Missing reading after irrigation")
+                        logger.error("Missing readings after irrigation")
                         return ""
                     }
 
@@ -101,13 +102,18 @@ class DataController(
                             )
                         }
                     } else {
+                        logger.info("Irrigating!")
                         saveIrrigation()
                         return "I"
                     }
                 } else {
-                    saveIrrigation()
-                    return "I"
+                    logger.warn("Soil dry but under 3h from last irrigation")
                 }
+            } else {
+                logger.info("Irrigating!")
+                saveIrrigation()
+                return "I"
+            }
         }
 
         return ""
