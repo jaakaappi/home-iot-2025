@@ -86,8 +86,10 @@ class DataController(
 
                     val readingBeforeLastIrrigation =
                         dataRepository.findFirstByTimestampLessThan(latestIrrigation.timestamp)
+                            ?.let { dataConverter.convert(it) }
                     val readingAfterLastIrrigation =
                         dataRepository.findFirstByTimestampGreaterThan(latestIrrigation.timestamp)
+                            ?.let { dataConverter.convert(it) }
 
                     if (readingAfterLastIrrigation == null) {
                         logger.error("Missing readings after irrigation")
