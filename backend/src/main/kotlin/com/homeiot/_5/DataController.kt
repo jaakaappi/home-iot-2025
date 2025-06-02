@@ -7,6 +7,7 @@ import org.springframework.web.server.ResponseStatusException
 import org.springframework.web.servlet.ModelAndView
 import java.text.SimpleDateFormat
 import java.time.Clock
+import java.time.Duration
 import java.time.Instant
 import java.time.temporal.ChronoUnit
 import java.util.*
@@ -131,30 +132,26 @@ class DataController(
 
     @GetMapping("", "/", "/{timeRange}")
     fun getPage(@PathVariable timeRange: TimeRange?): ModelAndView {
-        val data: List<Any> = when (timeRange) {
-            null -> dataRepository.findAllByOrderByTimestampDesc().toList()
-            TimeRange.twoHours -> dataRepository.getAfterTimestamp(
-                Clock.systemUTC().instant().minus(2, ChronoUnit.HOURS).toEpochMilli()
-            )
+        val duration =
+            when (timeRange) {
+                null -> Duration.of(1, ChronoUnit.DAYS)
+                TimeRange.twoHours -> Duration.of(2, ChronoUnit.HOURS)
+                TimeRange.day -> Duration.of(1, ChronoUnit.DAYS)
+                TimeRange.threeDays -> Duration.of(3, ChronoUnit.DAYS)
+                TimeRange.week -> Duration.of(7, ChronoUnit.DAYS)
+                TimeRange.month -> Duration.of(30, ChronoUnit.DAYS)
+                TimeRange.all -> Duration.of(1, ChronoUnit.DAYS)
+            }
 
-            TimeRange.day -> dataRepository.getAfterTimestamp(
-                Clock.systemUTC().instant().minus(1, ChronoUnit.DAYS).toEpochMilli()
-            )
+        val data: List<Any> = (if (timeRange == null || timeRange == TimeRange.all) dataRepository.findAll()
+            .toList() else dataRepository.getAfterTimestamp(
+            Clock.systemUTC().instant().minus(duration).toEpochMilli()
+        )).map { dataConverter.convert(it) }
 
-            TimeRange.threeDays -> dataRepository.getAfterTimestamp(
-                Clock.systemUTC().instant().minus(3, ChronoUnit.DAYS).toEpochMilli()
-            )
-
-            TimeRange.week -> dataRepository.getAfterTimestamp(
-                Clock.systemUTC().instant().minus(7, ChronoUnit.DAYS).toEpochMilli()
-            )
-
-            TimeRange.month -> dataRepository.getAfterTimestamp(
-                Clock.systemUTC().instant().minus(30, ChronoUnit.DAYS).toEpochMilli()
-            )
-
-            TimeRange.all -> dataRepository.findAll().toList()
-        }.map { if (it.timestamp > 1747849313389) dataConverter.convert(it) else it }
+        val irrigations = if (timeRange == null || timeRange == TimeRange.all) irrigationRepository.findAll()
+            .toList() else irrigationRepository.getAfterTimestamp(
+            Clock.systemUTC().instant().minus(duration).toEpochMilli()
+        )
 
         val timeUnit = when (timeRange) {
             TimeRange.twoHours -> "minute"
@@ -167,7 +164,11 @@ class DataController(
         val latestReading = dataRepository.findFirstByOrderByTimestampDesc()
             ?.let { if (it.timestamp > 1747849313389) dataConverter.convert(it) else it }
         val updateTimestampText =
-            if (latestReading != null) SimpleDateFormat("dd.MM.yyyy HH:mm:ss").format(Date(latestReading.timestamp)) else ""
+            if (latestReading != null) SimpleDateFormat("dd.MM.yyyy HH:mm:ss").format(Date(latestReading.timestamp)) else "ei tiedossa"
+
+        val latestIrrigation = irrigationRepository.findFirstByOrderByTimestampDesc()
+        val latestIrrigationText =
+            if (latestIrrigation != null) SimpleDateFormat("dd.MM.yyyy HH:mm:ss").format(Date(latestIrrigation.timestamp)) else "ei tiedossa"
 
         return ModelAndView(
             "index",
@@ -175,7 +176,9 @@ class DataController(
                 "data" to data,
                 "updateTimestamp" to updateTimestampText,
                 "latestReading" to latestReading,
-                "timeUnit" to timeUnit
+                "timeUnit" to timeUnit,
+                "irrigations" to irrigations,
+                "latestIrrigationTimestamp" to latestIrrigationText
             )
         )
     }

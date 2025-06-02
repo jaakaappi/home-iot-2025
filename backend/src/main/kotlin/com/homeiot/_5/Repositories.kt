@@ -19,4 +19,10 @@ interface DataRepository : CrudRepository<Data, Int> {
 
 interface IrrigationRepository : CrudRepository<Irrigation, Int> {
     fun findFirstByOrderByTimestampDesc(): Irrigation?
+
+    @Query(
+        "SELECT * FROM irrigations WHERE timestamp >= ?1",
+        nativeQuery = true
+    )
+    fun getAfterTimestamp(timeStamp: Long): List<Irrigation>
 }

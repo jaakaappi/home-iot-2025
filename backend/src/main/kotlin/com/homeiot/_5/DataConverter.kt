@@ -10,8 +10,8 @@ class DataConverter {
     val RESISTIVE_LOW = 1885.0f
     val CAPACITIVE_1_HIGH = 2205.0f
     val CAPACITIVE_1_LOW = 1265.0f
-    val CAPACITIVE_2_HIGH = 2765.0f
-    val CAPACITIVE_2_LOW = 2510.0f
+    val RESISTIVE_2_HIGH = 2765.0f
+    val RESISTIVE_2_LOW = 1885.0f
 
     private fun convertReading(reading: Float, highLimit: Float, lowLimit: Float, invert: Boolean? = true): Float {
         val scaled = (reading - lowLimit) / (highLimit - lowLimit)
@@ -31,7 +31,7 @@ class DataConverter {
             data.brightness,
             convertReading(data.soilHumidity1, RESISTIVE_HIGH, RESISTIVE_LOW, invert = false).coerceIn(0.0f, 100.0f),
             convertReading(data.soilHumidity2, CAPACITIVE_1_HIGH, CAPACITIVE_1_LOW).coerceIn(0.0f, 100.0f),
-            convertReading(data.soilHumidity3, CAPACITIVE_2_HIGH, CAPACITIVE_2_LOW, invert = false).coerceIn(
+            convertReading(data.soilHumidity3, RESISTIVE_2_HIGH, RESISTIVE_2_LOW, invert = false).coerceIn(
                 0.0f,
                 100.0f
             )

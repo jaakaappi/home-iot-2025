@@ -41,7 +41,7 @@
     <a href="/month">Kuukausi</a>
     <a href="/all">Kaikki</a>
 </div>
-<h3>Viimeisimmät lukemat {{updateTimestamp}}</h3>
+<h3>Viimeisimmät lukemat: {{updateTimestamp}}</h3>
 <ul>
     <li>Ilman lämpötila {{latestReading.airTemperature}}°C</li>
     <li>Ilman suhteellinen kosteus {{latestReading.airHumidity}}%</li>
@@ -54,6 +54,7 @@
         </ul>
     </li>
 </ul>
+<p>Viimeisin kastelu: {{latestIrrigationTimestamp}}</p>
 <h3>Graafit - kaikki data</h3>
 <div>
     <canvas id="allChart"></canvas>
@@ -71,11 +72,26 @@
       type: "line",
       data: {
         datasets: [
-          {
-            label: "Ilman lämpötila °C",
-            backgroundColor: "#FF6384",
-            borderColor: "#FF6384",
-            data: [
+  {
+    label: "Kastelu",
+    backgroundColor: "#36a2eb80",
+    borderColor: "#36A2EB",
+    data: [
+    {{#irrigations}}
+        {
+          x: {{timestamp}},
+                  y: 1
+        },
+    {{/irrigations}}
+    ],
+     yAxisID: "y2",
+     type: "bar"
+  },
+  {
+    label: "Ilman lämpötila °C",
+    backgroundColor: "#FF6384",
+    borderColor: "#FF6384",
+    data: [
     {{#data}}
         {
           x: {{timestamp}},
@@ -154,28 +170,60 @@
    },
 ],
 },
-options: {
-cubicInterpolationMode: "monotone",
-pointStyle: false,
-scales: {
-  x: {
-    type: "timeseries",
-    time: {
-        isoWeekday: true
+    options: {
+        cubicInterpolationMode: "monotone",
+        pointStyle: false,
+        scales: {
+            x: {
+                type: "timeseries",
+                time: {
+                    isoWeekday: true
+                },
+                offset: false,
+                ticks: {
+                    align: 'center'
+                }
+            },
+            y: {},
+            y1: {
+                min: 0,
+                position: "right"
+            },
+            y2: {
+                min: 0,
+                max: 1,
+                display: false,
+                grid: {
+                    display: false,
+                    drawTicks: false
+                },
+                ticks: {
+                    display: false
+                }
+            }
+        }
     }
-  },
-},
-y1: {
-  position: "right",
-  min: 0
-},
-},
 });
 
 const soilChart = new Chart(document.getElementById("soilChart"), {
 type: "line",
 data: {
 datasets: [
+  {
+    label: "Kastelu",
+    backgroundColor: "#36a2eb80",
+    borderColor: "#36A2EB",
+    data: [
+    {{#irrigations}}
+        {
+          x: {{timestamp}},
+                  y: 1
+        },
+    {{/irrigations}}
+    ],
+     yAxisID: "y2",
+     type: "bar"
+  },
    {
      label: "Resistiivinen anturi",
      backgroundColor: "#4BC0C0",
@@ -221,11 +269,15 @@ datasets: [
         cubicInterpolationMode: "monotone",
         pointStyle: false,
         scales: {
-          x: {
+        x: {
             type: "timeseries",
             time: {
                 isoWeekday: true,
             },
+            offset: false,
+            ticks: {
+                align: 'center'
+            }
             //ticks: { todo check chart unit, add day if other than previous value using https://www.chartjs.org/docs/latest/api/classes/Scale.html#getlabelforvalue
               // Include a dollar sign in the ticks
               //callback: function(value, index, ticks) {
@@ -233,7 +285,22 @@ datasets: [
                 //return '$' + value;
               //}
             //},
-          },
+        },
+        y: {
+            min: 0
+        },
+        y2: {
+            min: 0,
+            max: 1,
+            display: false,
+            grid: {
+                display: false,
+                drawTicks: false
+            },
+            ticks: {
+                display: false
+            }
+        }
         },
     },
 });
@@ -286,22 +353,26 @@ datasets: [
    },
 ],
 },
-options: {
-cubicInterpolationMode: "monotone",
-pointStyle: false,
-scales: {
-  x: {
-    type: "timeseries",
-    time: {
-        isoWeekday: true
+    options: {
+        cubicInterpolationMode: "monotone",
+        pointStyle: false,
+        scales: {
+            x: {
+                type: "timeseries",
+                time: {
+                    isoWeekday: true
+                },
+                offset: false,
+                ticks: {
+                    align: 'center'
+                }
+            },
+            y1: {
+                position: "right",
+                min: 0
+            }
+        }
     }
-  },
-  y1: {
-    position: "right",
-    min: 0
-  },
-},
-},
 });
 </script>
 </body>
