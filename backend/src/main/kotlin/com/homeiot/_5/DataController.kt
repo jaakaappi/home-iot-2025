@@ -103,6 +103,10 @@ class DataController(
                                     Instant.ofEpochMilli(latestIrrigation.timestamp)
                                 }: ${readingAfterLastIrrigation.soilHumidity1} and ${readingAfterLastIrrigation.soilHumidity2} vs. before ${readingBeforeLastIrrigation.soilHumidity1} and ${readingBeforeLastIrrigation.soilHumidity2}!"
                             )
+                        } else {
+                            logger.info("Irrigating!")
+                            saveIrrigation()
+                            return "I"
                         }
                     } else {
                         logger.info("Irrigating!")
