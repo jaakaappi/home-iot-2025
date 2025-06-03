@@ -6,12 +6,12 @@ import java.math.RoundingMode
 
 @Component
 class DataConverter {
-    val RESISTIVE_HIGH = 2670.0f
-    val RESISTIVE_LOW = 1885.0f
+    val RESISTIVE_HIGH = 2450.0f
+    val RESISTIVE_LOW = 2000.0f
     val CAPACITIVE_1_HIGH = 2205.0f
     val CAPACITIVE_1_LOW = 1265.0f
-    val RESISTIVE_2_HIGH = 2765.0f
-    val RESISTIVE_2_LOW = 1885.0f
+    val RESISTIVE_2_HIGH = 2700.0f
+    val RESISTIVE_2_LOW = 2200.0f
 
     private fun convertReading(reading: Float, highLimit: Float, lowLimit: Float, invert: Boolean? = true): Float {
         val scaled = (reading - lowLimit) / (highLimit - lowLimit)
