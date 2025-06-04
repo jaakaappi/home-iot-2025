@@ -17,11 +17,11 @@ DHT_Unified dht(DHTPIN, DHTTYPE);
 #define SOIL_MOISTURE_2_PIN GPIO_NUM_39     // pcb
 #define SOIL_MOISTURE_3_PIN GPIO_NUM_34     // metal
 
-#define IRRIGATION_DURATION_MS 5 * 1000
+#define IRRIGATION_DURATION_MS 10 * 1000
 #define PUMP_PIN GPIO_NUM_32
 #define BUTTON_IN GPIO_NUM_26
 
-#define AVERAGING_COUNT 10
+#define AVERAGING_COUNT 100
 
 void irrigate()
 {
@@ -39,6 +39,7 @@ float takeAveragedMeasurement(int pin)
   for (int i = 0; i < AVERAGING_COUNT; i++)
   {
     reading += analogRead(pin);
+    delay(10);
   }
 
   return reading / AVERAGING_COUNT;
