@@ -37,4 +37,17 @@ class DataConverter {
             )
         )
     }
+
+    fun average(previous: Data, current: Data): Data {
+        return Data(
+            0,
+            current.timestamp,
+            (previous.airHumidity + current.airHumidity) / 2,
+            (previous.airTemperature + current.airTemperature) / 2,
+            (previous.brightness + current.brightness) / 2,
+            (previous.soilHumidity1 + current.soilHumidity1) / 2,
+            (previous.soilHumidity2 + current.soilHumidity2) / 2,
+            (previous.soilHumidity3 + current.soilHumidity3) / 2
+        )
+    }
 }

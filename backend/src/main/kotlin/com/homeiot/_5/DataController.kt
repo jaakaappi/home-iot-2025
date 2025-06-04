@@ -74,52 +74,58 @@ class DataController(
         val latestReading = dataRepository.findFirstByOrderByTimestampDesc()
             ?.let { if (it.timestamp > 1747849313389) dataConverter.convert(it) else it }
 
-        if (latestReading != null && (latestReading.soilHumidity1 + latestReading.soilHumidity2) / 2 <= 50.0f) {
-            logger.info("Checking irrigation")
-            val latestIrrigation = irrigationRepository.findFirstByOrderByTimestampDesc()
 
-            if (latestIrrigation != null) {
-                if (Instant.now()
-                        .toEpochMilli() - latestIrrigation.timestamp > 3 * 60 * 60 * 1000
-                ) {
+        if (latestReading != null) {
+            val combinedMoisture = (latestReading.soilHumidity1 + latestReading.soilHumidity2) / 2
+            logger.info("Sensor combined moisture $combinedMoisture")
 
+            if (combinedMoisture <= 50) {
+                val latestIrrigation = irrigationRepository.findFirstByOrderByTimestampDesc()
 
-                    val readingBeforeLastIrrigation =
-                        dataRepository.findFirstByTimestampLessThan(latestIrrigation.timestamp)
-                            ?.let { dataConverter.convert(it) }
-                    val readingAfterLastIrrigation =
-                        dataRepository.findFirstByTimestampGreaterThan(latestIrrigation.timestamp)
-                            ?.let { dataConverter.convert(it) }
+                if (latestIrrigation != null) {
+                    val duration = Instant.now()
+                        .toEpochMilli() - latestIrrigation.timestamp
+                    if (duration > 3 * 60 * 60 * 1000
+                    ) {
+                        logger.info("Irrigation time limit passed, ${prettyPrintDuration(Duration.ofMillis(duration))} since last")
 
-                    if (readingAfterLastIrrigation == null) {
-                        logger.error("Missing readings after irrigation")
-                        return ""
-                    }
+                        val readingBeforeLastIrrigation =
+                            dataRepository.findFirstByTimestampLessThan(latestIrrigation.timestamp)
+                                ?.let { dataConverter.convert(it) }
+                        val readingAfterLastIrrigation =
+                            dataRepository.findFirstByTimestampGreaterThan(latestIrrigation.timestamp)
+                                ?.let { dataConverter.convert(it) }
 
-                    if (readingBeforeLastIrrigation != null) {
-                        if ((readingAfterLastIrrigation.soilHumidity1 + readingAfterLastIrrigation.soilHumidity2) / 2 <= (readingBeforeLastIrrigation.soilHumidity1 + readingBeforeLastIrrigation.soilHumidity2) / 2) {
-                            logger.error(
-                                "Humidity has not increased after last irrigation at ${
-                                    Instant.ofEpochMilli(latestIrrigation.timestamp)
-                                }: ${readingAfterLastIrrigation.soilHumidity1} and ${readingAfterLastIrrigation.soilHumidity2} vs. before ${readingBeforeLastIrrigation.soilHumidity1} and ${readingBeforeLastIrrigation.soilHumidity2}!"
-                            )
+                        if (readingAfterLastIrrigation == null) {
+                            logger.error("Missing readings after last irrigation")
+                            return ""
+                        }
+
+                        if (readingBeforeLastIrrigation != null) {
+                            if ((readingAfterLastIrrigation.soilHumidity1 + readingAfterLastIrrigation.soilHumidity2) / 2 <= (readingBeforeLastIrrigation.soilHumidity1 + readingBeforeLastIrrigation.soilHumidity2) / 2) {
+                                logger.error(
+                                    "Humidity has not increased after last irrigation at ${
+                                        Instant.ofEpochMilli(latestIrrigation.timestamp)
+                                    }: ${readingAfterLastIrrigation.soilHumidity1} and ${readingAfterLastIrrigation.soilHumidity2} vs. before ${readingBeforeLastIrrigation.soilHumidity1} and ${readingBeforeLastIrrigation.soilHumidity2}!"
+                                )
+                            } else {
+                                logger.info("Irrigating!")
+                                saveIrrigation()
+                                return "I"
+                            }
                         } else {
                             logger.info("Irrigating!")
                             saveIrrigation()
                             return "I"
                         }
                     } else {
-                        logger.info("Irrigating!")
-                        saveIrrigation()
-                        return "I"
+                        logger.warn("Soil dry but under 3h from last irrigation")
                     }
                 } else {
-                    logger.warn("Soil dry but under 3h from last irrigation")
+                    logger.info("Irrigating!")
+                    saveIrrigation()
+                    return "I"
                 }
-            } else {
-                logger.info("Irrigating!")
-                saveIrrigation()
-                return "I"
             }
         }
 
@@ -149,10 +155,17 @@ class DataController(
                 TimeRange.all -> Duration.of(1, ChronoUnit.DAYS)
             }
 
-        val data: List<Any> = (if (timeRange == null || timeRange == TimeRange.all) dataRepository.findAll()
+        val rawData = (if (timeRange == null || timeRange == TimeRange.all) dataRepository.findAll()
             .toList() else dataRepository.getAfterTimestamp(
             Clock.systemUTC().instant().minus(duration).toEpochMilli()
-        )).map { dataConverter.convert(it) }
+        ))
+        val averagedData = rawData.mapIndexed { index: Int, it: Data ->
+            if (index == 0) it else dataConverter.average(
+                rawData[index - 1],
+                it
+            )
+        }
+        val data: List<Data> = averagedData.map { dataConverter.convert(it) }
 
         val irrigations = if (timeRange == null || timeRange == TimeRange.all) irrigationRepository.findAll()
             .toList() else irrigationRepository.getAfterTimestamp(
