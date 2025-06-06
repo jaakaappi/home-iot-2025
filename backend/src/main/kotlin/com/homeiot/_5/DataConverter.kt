@@ -6,8 +6,8 @@ import java.math.RoundingMode
 
 @Component
 class DataConverter {
-    val RESISTIVE_HIGH = 2450.0f
-    val RESISTIVE_LOW = 2000.0f
+    val RESISTIVE_HIGH = 2660.0f
+    val RESISTIVE_LOW = 2100.0f
     val CAPACITIVE_1_HIGH = 2205.0f
     val CAPACITIVE_1_LOW = 1265.0f
     val RESISTIVE_2_HIGH = 2700.0f
