@@ -76,10 +76,9 @@ class DataController(
 
 
         if (latestReading != null) {
-            val combinedMoisture = (latestReading.soilHumidity1 + latestReading.soilHumidity2) / 2
-            logger.info("Sensor combined moisture $combinedMoisture")
+            logger.info("Sensor combined moisture $soilHumidity2")
 
-            if (combinedMoisture <= 50) {
+            if (soilHumidity2 <= 50) {
                 val latestIrrigation = irrigationRepository.findFirstByOrderByTimestampDesc()
 
                 if (latestIrrigation != null) {
@@ -102,11 +101,11 @@ class DataController(
                         }
 
                         if (readingBeforeLastIrrigation != null) {
-                            if ((readingAfterLastIrrigation.soilHumidity1 + readingAfterLastIrrigation.soilHumidity2) / 2 <= (readingBeforeLastIrrigation.soilHumidity1 + readingBeforeLastIrrigation.soilHumidity2) / 2) {
+                            if (readingAfterLastIrrigation.soilHumidity2 <= readingBeforeLastIrrigation.soilHumidity2) {
                                 logger.error(
                                     "Humidity has not increased after last irrigation at ${
                                         Instant.ofEpochMilli(latestIrrigation.timestamp)
-                                    }: ${readingAfterLastIrrigation.soilHumidity1} and ${readingAfterLastIrrigation.soilHumidity2} vs. before ${readingBeforeLastIrrigation.soilHumidity1} and ${readingBeforeLastIrrigation.soilHumidity2}!"
+                                    }: ${readingAfterLastIrrigation.soilHumidity2} vs. before ${readingBeforeLastIrrigation.soilHumidity2}!"
                                 )
                             } else {
                                 logger.info("Irrigating!")
