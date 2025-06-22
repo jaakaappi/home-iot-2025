@@ -143,6 +143,8 @@ class DataController(
 
     @GetMapping("", "/", "/{timeRange}")
     fun getPage(@PathVariable timeRange: TimeRange?): ModelAndView {
+        logger.info(timeRange.toString())
+
         val duration =
             when (timeRange) {
                 null -> Duration.of(1, ChronoUnit.DAYS)
@@ -154,7 +156,7 @@ class DataController(
                 TimeRange.all -> Duration.of(1, ChronoUnit.DAYS)
             }
 
-        val rawData = (if (timeRange == null || timeRange == TimeRange.all) dataRepository.findAll()
+        val rawData = (if (timeRange == TimeRange.all) dataRepository.findAll()
             .toList() else dataRepository.getAfterTimestamp(
             Clock.systemUTC().instant().minus(duration).toEpochMilli()
         ))
@@ -166,7 +168,7 @@ class DataController(
         }
         val data: List<Data> = averagedData.map { dataConverter.convert(it) }
 
-        val irrigations = if (timeRange == null || timeRange == TimeRange.all) irrigationRepository.findAll()
+        val irrigations = if (timeRange == TimeRange.all) irrigationRepository.findAll()
             .toList() else irrigationRepository.getAfterTimestamp(
             Clock.systemUTC().instant().minus(duration).toEpochMilli()
         )
