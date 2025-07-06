@@ -4,23 +4,24 @@ import org.springframework.stereotype.Component
 import java.math.BigDecimal
 import java.math.RoundingMode
 
-@Component
-class DataConverter {
-    val RESISTIVE_HIGH = 1140.0f
-    val RESISTIVE_LOW = 350.0f
+val RESISTIVE_HIGH = 1140.0f
+val RESISTIVE_LOW = 350.0f
 //    val RESISTIVE_HIGH = 2660.0f
 //    val RESISTIVE_LOW = 2100.0f
 
-    //    val CAPACITIVE_1_HIGH = 2205.0f
-    val CAPACITIVE_1_HIGH = 1600.0f
-    val CAPACITIVE_1_LOW = 1100.0f
+//    val CAPACITIVE_1_HIGH = 2205.0f
+val CAPACITIVE_1_HIGH = 1600.0f
+val CAPACITIVE_1_LOW = 1100.0f
 
-    val RESISTIVE_2_HIGH = 2700.0f
-    val RESISTIVE_2_LOW = 2200.0f
+val RESISTIVE_2_HIGH = 2700.0f
+val RESISTIVE_2_LOW = 2200.0f
 //    val RESISTIVE_2_HIGH = 1140.0f
 //    val RESISTIVE_2_LOW = 350.0f
 
-    private fun convertReading(reading: Float, highLimit: Float, lowLimit: Float, invert: Boolean? = true): Float {
+@Component
+class DataConverter {
+
+    fun convertReading(reading: Float, highLimit: Float, lowLimit: Float, invert: Boolean? = true): Float {
         val scaled = (reading - lowLimit) / (highLimit - lowLimit)
         val maybeInverted = if (invert == true) 1.0f - scaled else scaled
         return BigDecimal((maybeInverted * 100.0f).toString()).setScale(

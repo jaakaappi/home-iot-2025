@@ -24,7 +24,7 @@ data class Data(
 @Table(name = "irrigations")
 data class Irrigation(
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE)
     val id: Int = 0,
     val timestamp: Long,
 )
