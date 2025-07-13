@@ -80,7 +80,7 @@ class DataController(
                 dataConverter.convertReading(soilHumidity2, CAPACITIVE_1_HIGH, CAPACITIVE_1_LOW)
             logger.info("Sensor combined moisture $convertedSensorMoisture")
 
-            if (convertedSensorMoisture <= 50) {
+            if (convertedSensorMoisture <= 60) {
                 val latestIrrigation = irrigationRepository.findFirstByOrderByTimestampDesc()
 
                 if (latestIrrigation != null) {
