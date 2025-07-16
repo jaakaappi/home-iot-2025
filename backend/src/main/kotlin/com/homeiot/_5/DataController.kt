@@ -185,6 +185,10 @@ class DataController(
 
         val latestReading = dataRepository.findFirstByOrderByTimestampDesc()
             ?.let { if (it.timestamp > 1747849313389) dataConverter.convert(it) else it }
+        logger.info(
+            dataRepository.findFirstByOrderByTimestampDesc()?.soilHumidity2.toString(),
+            latestReading?.soilHumidity2.toString()
+        )
         val updateTimestampText =
             if (latestReading != null) SimpleDateFormat("dd.MM.yyyy HH:mm:ss").format(Date(latestReading.timestamp)) else "ei tiedossa"
 
