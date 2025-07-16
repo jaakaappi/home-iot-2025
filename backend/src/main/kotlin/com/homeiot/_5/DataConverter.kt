@@ -4,17 +4,17 @@ import org.springframework.stereotype.Component
 import java.math.BigDecimal
 import java.math.RoundingMode
 
-val RESISTIVE_HIGH = 1140.0f
+val RESISTIVE_HIGH = 1300.0f
 val RESISTIVE_LOW = 350.0f
 //    val RESISTIVE_HIGH = 2660.0f
 //    val RESISTIVE_LOW = 2100.0f
 
 //    val CAPACITIVE_1_HIGH = 2205.0f
 val CAPACITIVE_1_HIGH = 1600.0f
-val CAPACITIVE_1_LOW = 1100.0f
+val CAPACITIVE_1_LOW = 1230.0f
 
 val RESISTIVE_2_HIGH = 2700.0f
-val RESISTIVE_2_LOW = 2200.0f
+val RESISTIVE_2_LOW = 2000.0f
 //    val RESISTIVE_2_HIGH = 1140.0f
 //    val RESISTIVE_2_LOW = 350.0f
 
@@ -37,7 +37,7 @@ class DataConverter {
             data.airHumidity,
             data.airTemperature,
             data.brightness,
-            convertReading(data.soilHumidity1, RESISTIVE_HIGH, RESISTIVE_LOW, invert = false).coerceIn(0.0f, 100.0f),
+            convertReading(data.soilHumidity1, RESISTIVE_HIGH, RESISTIVE_LOW).coerceIn(0.0f, 100.0f),
             convertReading(data.soilHumidity2, CAPACITIVE_1_HIGH, CAPACITIVE_1_LOW).coerceIn(0.0f, 100.0f),
             convertReading(data.soilHumidity3, RESISTIVE_2_HIGH, RESISTIVE_2_LOW).coerceIn(
                 0.0f,
