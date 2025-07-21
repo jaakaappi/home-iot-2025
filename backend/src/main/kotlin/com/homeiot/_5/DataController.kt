@@ -19,6 +19,9 @@ enum class TimeRange {
 }
 
 
+const val IRRIGATION_MOISTURE_LIMIT_PERCENTAGE = 50
+
+
 @RestController
 class DataController(
     private val dataRepository: DataRepository,
@@ -80,7 +83,7 @@ class DataController(
                 dataConverter.convertReading(soilHumidity2, CAPACITIVE_1_HIGH, CAPACITIVE_1_LOW)
             logger.info("Sensor combined moisture $convertedSensorMoisture")
 
-            if (convertedSensorMoisture <= 60) {
+            if (convertedSensorMoisture <= IRRIGATION_MOISTURE_LIMIT_PERCENTAGE) {
                 val latestIrrigation = irrigationRepository.findFirstByOrderByTimestampDesc()
 
                 if (latestIrrigation != null) {
