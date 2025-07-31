@@ -6,10 +6,7 @@ import org.springframework.web.bind.annotation.*
 import org.springframework.web.server.ResponseStatusException
 import org.springframework.web.servlet.ModelAndView
 import java.text.SimpleDateFormat
-import java.time.Clock
-import java.time.Duration
-import java.time.Instant
-import java.time.temporal.ChronoField
+import java.time.*
 import java.time.temporal.ChronoUnit
 import java.util.*
 
@@ -148,13 +145,13 @@ class DataController(
         if (latestIrrigation != null) {
             val lastIrrigationTimestamp = latestIrrigation.timestamp
             val timeDifference = Instant.now().toEpochMilli() - lastIrrigationTimestamp
+            val finlandTime = ZonedDateTime.now(ZoneId.of("Europe/Helsinki")).toLocalTime()
 
             if (timeDifference >= Duration.ofDays(1).toMillis()) {
                 logger.info("Over 24h since last irrigation, irrigating!")
                 saveIrrigation()
                 return "I"
-            } else if (timeDifference >= Duration.ofHours(18).toMillis() && Instant.now()
-                    .get(ChronoField.HOUR_OF_DAY) >= 21
+            } else if (timeDifference >= Duration.ofHours(18).toMillis() && finlandTime.hour >= 21
             ) {
                 logger.info("No irrigation yet this evening, irrigating!")
                 saveIrrigation()
