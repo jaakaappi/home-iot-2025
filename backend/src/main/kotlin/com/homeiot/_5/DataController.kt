@@ -9,6 +9,7 @@ import java.text.SimpleDateFormat
 import java.time.Clock
 import java.time.Duration
 import java.time.Instant
+import java.time.temporal.ChronoField
 import java.time.temporal.ChronoUnit
 import java.util.*
 
@@ -74,63 +75,105 @@ class DataController(
             )
         )
 
-        val latestReading = dataRepository.findFirstByOrderByTimestampDesc()
-            ?.let { if (it.timestamp > 1747849313389) dataConverter.convert(it) else it }
+//        val latestReading = dataRepository.findFirstByOrderByTimestampDesc()
+//            ?.let { if (it.timestamp > 1747849313389) dataConverter.convert(it) else it }
+//
+//
+//        if (latestReading != null) {
+//            val convertedSensorMoisture =
+//                dataConverter.convertReading(soilHumidity2, CAPACITIVE_1_HIGH, CAPACITIVE_1_LOW)
+//            logger.info("Sensor combined moisture $convertedSensorMoisture")
+//
+//            if (convertedSensorMoisture <= IRRIGATION_MOISTURE_LIMIT_PERCENTAGE) {
+//                val latestIrrigation = irrigationRepository.findFirstByOrderByTimestampDesc()
+//
+//                if (latestIrrigation != null) {
+//                    val duration = Instant.now()
+//                        .toEpochMilli() - latestIrrigation.timestamp
+//                    if (duration > 3 * 60 * 60 * 1000
+//                    ) {
+//                        logger.info("Irrigation time limit passed, ${prettyPrintDuration(Duration.ofMillis(duration))} since last")
+//
+//                        val readingBeforeLastIrrigation =
+//                            dataRepository.findFirstByTimestampLessThan(latestIrrigation.timestamp)
+//                                ?.let { dataConverter.convert(it) }
+//                        val readingAfterLastIrrigation =
+//                            dataRepository.findFirstByTimestampGreaterThan(latestIrrigation.timestamp)
+//                                ?.let { dataConverter.convert(it) }
+//
+//                        if (readingAfterLastIrrigation == null) {
+//                            logger.error("Missing readings after last irrigation")
+//                            return ""
+//                        }
+//
+//                        if (readingBeforeLastIrrigation != null) {
+//                            if (readingAfterLastIrrigation.soilHumidity2 <= readingBeforeLastIrrigation.soilHumidity2) {
+//                                logger.error(
+//                                    "Humidity has not increased after last irrigation at ${
+//                                        Instant.ofEpochMilli(latestIrrigation.timestamp)
+//                                    }: ${readingAfterLastIrrigation.soilHumidity2} vs. before ${readingBeforeLastIrrigation.soilHumidity2}!"
+//                                )
+//                            } else {
+//                                logger.info("Irrigating!")
+//                                saveIrrigation()
+//                                return "I"
+//                            }
+//                        } else {
+//                            logger.info("Irrigating!")
+//                            saveIrrigation()
+//                            return "I"
+//                        }
+//                    } else {
+//                        logger.warn("Soil dry but under 3h from last irrigation")
+//                    }
+//                } else {
+//                    logger.info("Irrigating!")
+//                    saveIrrigation()
+//                    return "I"
+//                }
+//            }
+//        }
 
+        val latestIrrigation = irrigationRepository.findFirstByOrderByTimestampDesc()
+        val lastDayData = dataRepository.getAfterTimestamp(
+            Clock.systemUTC().instant().minus(Duration.of(1, ChronoUnit.DAYS)).toEpochMilli()
+        )
+        val lastDayIrrigations = irrigationRepository.getAfterTimestamp(
+            Clock.systemUTC().instant().minus(Duration.of(1, ChronoUnit.DAYS)).toEpochMilli()
+        )
 
-        if (latestReading != null) {
-            val convertedSensorMoisture =
-                dataConverter.convertReading(soilHumidity2, CAPACITIVE_1_HIGH, CAPACITIVE_1_LOW)
-            logger.info("Sensor combined moisture $convertedSensorMoisture")
+        val lastDayMaxTemperature = lastDayData.maxWithOrNull(compareBy { it.airTemperature })?.airTemperature
+        val lastDayMaxBrightness = lastDayData.maxWithOrNull(compareBy { it.brightness })?.brightness
 
-            if (convertedSensorMoisture <= IRRIGATION_MOISTURE_LIMIT_PERCENTAGE) {
-                val latestIrrigation = irrigationRepository.findFirstByOrderByTimestampDesc()
+        if (latestIrrigation != null) {
+            val lastIrrigationTimestamp = latestIrrigation.timestamp
+            val timeDifference = Instant.now().toEpochMilli() - lastIrrigationTimestamp
 
-                if (latestIrrigation != null) {
-                    val duration = Instant.now()
-                        .toEpochMilli() - latestIrrigation.timestamp
-                    if (duration > 3 * 60 * 60 * 1000
-                    ) {
-                        logger.info("Irrigation time limit passed, ${prettyPrintDuration(Duration.ofMillis(duration))} since last")
-
-                        val readingBeforeLastIrrigation =
-                            dataRepository.findFirstByTimestampLessThan(latestIrrigation.timestamp)
-                                ?.let { dataConverter.convert(it) }
-                        val readingAfterLastIrrigation =
-                            dataRepository.findFirstByTimestampGreaterThan(latestIrrigation.timestamp)
-                                ?.let { dataConverter.convert(it) }
-
-                        if (readingAfterLastIrrigation == null) {
-                            logger.error("Missing readings after last irrigation")
-                            return ""
-                        }
-
-                        if (readingBeforeLastIrrigation != null) {
-                            if (readingAfterLastIrrigation.soilHumidity2 <= readingBeforeLastIrrigation.soilHumidity2) {
-                                logger.error(
-                                    "Humidity has not increased after last irrigation at ${
-                                        Instant.ofEpochMilli(latestIrrigation.timestamp)
-                                    }: ${readingAfterLastIrrigation.soilHumidity2} vs. before ${readingBeforeLastIrrigation.soilHumidity2}!"
-                                )
-                            } else {
-                                logger.info("Irrigating!")
-                                saveIrrigation()
-                                return "I"
-                            }
-                        } else {
-                            logger.info("Irrigating!")
-                            saveIrrigation()
-                            return "I"
-                        }
-                    } else {
-                        logger.warn("Soil dry but under 3h from last irrigation")
-                    }
-                } else {
-                    logger.info("Irrigating!")
+            if (timeDifference >= Duration.ofDays(1).toMillis()) {
+                logger.info("Over 24h since last irrigation, irrigating!")
+                saveIrrigation()
+                return "I"
+            } else if (timeDifference >= Duration.ofHours(18).toMillis() && Instant.now()
+                    .get(ChronoField.HOUR_OF_DAY) >= 21
+            ) {
+                logger.info("No irrigation yet this evening, irrigating!")
+                saveIrrigation()
+                return "I"
+            } else if (lastDayIrrigations.count() == 1) {
+                if (lastDayMaxTemperature?.let { it >= 30 } == true) {
+                    logger.info("It was hot today, irrigating again!")
+                    saveIrrigation()
+                    return "I"
+                } else if (lastDayMaxBrightness?.let { it >= 16000 } == true) {
+                    logger.info("It was bright today, irrigating again!")
                     saveIrrigation()
                     return "I"
                 }
             }
+        } else {
+            logger.info("No previous irrigation available, irrigating!")
+            saveIrrigation()
+            return "I"
         }
 
         return ""
