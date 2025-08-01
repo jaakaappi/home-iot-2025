@@ -137,6 +137,7 @@ class DataController(
         val lastDayIrrigations = irrigationRepository.getAfterTimestamp(
             Instant.now().minus(Duration.of(1, ChronoUnit.DAYS)).toEpochMilli()
         )
+        logger.info("Last day irrigations ${lastDayIrrigations.map { it -> it.timestamp }.joinToString(", ")}")
 
         val lastDayMaxTemperature = lastDayData.maxWithOrNull(compareBy { it.airTemperature })?.airTemperature
         val lastDayMaxBrightness = lastDayData.maxWithOrNull(compareBy { it.brightness })?.brightness
@@ -150,12 +151,18 @@ class DataController(
                 logger.info("Over 24h since last irrigation, irrigating!")
                 saveIrrigation()
                 return "I"
-            } else if (timeDifference >= Duration.ofHours(18).toMillis() && finlandTime.hour >= 21
+            } else {
+                logger.info("${timeDifference}ms or ${timeDifference / 1000.0 / 60.0 / 60.0}h since last irrigation")
+            }
+            if (timeDifference >= Duration.ofHours(18).toMillis() && finlandTime.hour >= 21
             ) {
                 logger.info("No irrigation yet this evening, irrigating!")
                 saveIrrigation()
                 return "I"
-            } else if (lastDayIrrigations.count() == 1) {
+            } else {
+                logger.info("It's $finlandTime in Finland")
+            }
+            if (lastDayIrrigations.count() == 1) {
                 if (lastDayMaxTemperature?.let { it >= 30 } == true) {
                     logger.info("It was hot today, irrigating again!")
                     saveIrrigation()
@@ -164,7 +171,11 @@ class DataController(
                     logger.info("It was bright today, irrigating again!")
                     saveIrrigation()
                     return "I"
+                } else {
+                    logger.info("Irrigated once today, but ${if (lastDayMaxTemperature != null) "max temperature only $lastDayMaxTemperature" else "missing max temperature"} and ${if (lastDayMaxBrightness != null) "max brightness only $lastDayMaxBrightness" else "missing max brightness"}")
                 }
+            } else {
+                logger.info("${lastDayIrrigations.count()} irrigations in last 24h")
             }
         } else {
             logger.info("No previous irrigation available, irrigating!")
@@ -187,8 +198,6 @@ class DataController(
 
     @GetMapping("", "/", "/{timeRange}")
     fun getPage(@PathVariable timeRange: TimeRange?): ModelAndView {
-        logger.info(timeRange.toString())
-
         val duration =
             when (timeRange) {
                 null -> Duration.of(1, ChronoUnit.DAYS)
