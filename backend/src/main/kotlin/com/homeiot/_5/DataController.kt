@@ -5,10 +5,9 @@ import org.springframework.http.HttpStatus
 import org.springframework.web.bind.annotation.*
 import org.springframework.web.server.ResponseStatusException
 import org.springframework.web.servlet.ModelAndView
-import java.text.SimpleDateFormat
 import java.time.*
+import java.time.format.DateTimeFormatter
 import java.time.temporal.ChronoUnit
-import java.util.*
 
 enum class TimeRange {
     twoHours, day,
@@ -133,10 +132,10 @@ class DataController(
 
         val latestIrrigation = irrigationRepository.findFirstByOrderByTimestampDesc()
         val lastDayData = dataRepository.getAfterTimestamp(
-            Clock.systemUTC().instant().minus(Duration.of(1, ChronoUnit.DAYS)).toEpochMilli()
+            Instant.now().minus(Duration.of(1, ChronoUnit.DAYS)).toEpochMilli()
         )
         val lastDayIrrigations = irrigationRepository.getAfterTimestamp(
-            Clock.systemUTC().instant().minus(Duration.of(1, ChronoUnit.DAYS)).toEpochMilli()
+            Instant.now().minus(Duration.of(1, ChronoUnit.DAYS)).toEpochMilli()
         )
 
         val lastDayMaxTemperature = lastDayData.maxWithOrNull(compareBy { it.airTemperature })?.airTemperature
@@ -232,12 +231,21 @@ class DataController(
             dataRepository.findFirstByOrderByTimestampDesc()?.soilHumidity2.toString() + " " +
                     latestReading?.soilHumidity2.toString()
         )
+        val datetimeFormatter = DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm:ss")
         val updateTimestampText =
-            if (latestReading != null) SimpleDateFormat("dd.MM.yyyy HH:mm:ss").format(Date(latestReading.timestamp)) else "ei tiedossa"
+            if (latestReading != null)
+                Instant.ofEpochMilli(latestReading.timestamp).atZone(
+                    ZoneId.of("Europe/Helsinki")
+                ).format(datetimeFormatter)
+            else "ei tiedossa"
 
         val latestIrrigation = irrigationRepository.findFirstByOrderByTimestampDesc()
         val latestIrrigationText =
-            if (latestIrrigation != null) SimpleDateFormat("dd.MM.yyyy HH:mm:ss").format(Date(latestIrrigation.timestamp)) else "ei tiedossa"
+            if (latestIrrigation != null)
+                Instant.ofEpochMilli(latestIrrigation.timestamp).atZone(
+                    ZoneId.of("Europe/Helsinki")
+                ).format(datetimeFormatter)
+            else "ei tiedossa"
 
         return ModelAndView(
             "index",
